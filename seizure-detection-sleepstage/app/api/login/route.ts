@@ -25,7 +25,15 @@ export async function POST(req: Request) {
       { expiresIn: "1d" }
     );
 
-    return NextResponse.json({ message: "Login successful", token }, { status: 200 });
+    return NextResponse.json({ 
+      message: "Login successful", 
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email
+      }
+    }, { status: 200 });
   } catch (error) {
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
