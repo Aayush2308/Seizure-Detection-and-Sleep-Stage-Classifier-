@@ -39,6 +39,77 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
 
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+*.egg-info/
+dist/
+build/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb_checkpoints/
+
+# Machine Learning / Data Science
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+*.joblib
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+# models/ - commented out to allow TypeScript models/ directory
+ml/models/
+ml/checkpoints/
+checkpoints/
+*.model
+*.weights
+
+# Data files
+*.csv
+*.tsv
+*.edf
+*.mat
 *.npz
+*.npy
+data/
+datasets/
+raw_data/
+processed_data/
+
+# Logs and outputs
+logs/
+*.log
+outputs/
+results/
+runs/
+wandb/
+mlruns/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-*
+
+# OS
+Thumbs.db
+.DS_Store
