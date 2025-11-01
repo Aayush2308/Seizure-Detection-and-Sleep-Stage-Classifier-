@@ -1,11 +1,9 @@
 "use client";
-
 import Link from "next/link";
 import { Brain, Activity, Moon, Shield, Zap, BarChart3 } from "lucide-react";
-
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-purple-50">
       {/* Navigation Bar */}
       <nav className="bg-white shadow-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -29,26 +27,24 @@ export default function Home() {
           </div>
         </div>
       </nav>
-
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center">
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
             Advanced EEG Analysis with
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600"> Machine Learning</span>
+            <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-purple-600"> Machine Learning</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
             Harness the power of artificial intelligence for accurate seizure detection and sleep stage classification. 
             Our cutting-edge ML models provide reliable, fast, and comprehensive neurological analysis.
           </p>
           <Link href="/signup">
-            <button className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-lg rounded-xl hover:shadow-2xl transform hover:scale-105 transition">
+            <button className="px-8 py-4 bg-linear-to-r from-blue-600 to-purple-600 text-white font-bold text-lg rounded-xl hover:shadow-2xl transform hover:scale-105 transition">
               Get Started Free
             </button>
           </Link>
         </div>
       </section>
-
       {/* Features Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">Our Core Capabilities</h2>
@@ -86,7 +82,6 @@ export default function Home() {
               <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">PKL Support</span>
             </div>
           </div>
-
           {/* Sleep Stage Classification Card */}
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 hover:shadow-2xl transition transform hover:-translate-y-1">
             <div className="flex items-center gap-4 mb-4">
@@ -122,7 +117,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       {/* How It Works Section */}
       <section className="bg-white py-16 mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -152,10 +146,9 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       {/* CTA Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl shadow-2xl p-12 text-center text-white">
+        <div className="bg-linear-to-r from-blue-600 to-purple-600 rounded-2xl shadow-2xl p-12 text-center text-white">
           <h2 className="text-4xl font-bold mb-4">Ready to Get Started?</h2>
           <p className="text-xl mb-8 opacity-90">Join researchers and clinicians using our AI-powered EEG analysis platform</p>
           <Link href="/signup">
@@ -165,7 +158,6 @@ export default function Home() {
           </Link>
         </div>
       </section>
-
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

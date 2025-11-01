@@ -1,34 +1,26 @@
 "use client";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Brain, Mail, Lock } from "lucide-react";
-
 export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setMessage("");
-
     try {
       const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-
       const data = await res.json();
-
       if (res.ok) {
-        // Store JWT token and user info in localStorage
         localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
         setMessage("Login successful! Redirecting...");
         setTimeout(() => router.push("/dashboard"), 1000);
       } else {
@@ -40,7 +32,6 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
-
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center px-4">
       <div className="max-w-md w-full">
@@ -53,7 +44,6 @@ export default function LoginPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
           <p className="text-gray-600">Login to continue analyzing EEG data</p>
         </div>
-
         {/* Login Form */}
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -74,12 +64,16 @@ export default function LoginPage() {
                 />
               </div>
             </div>
-
             {/* Password Input */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Password
-              </label>
+              <div className="flex justify-between items-center mb-2">
+                <label className="block text-sm font-semibold text-gray-700">
+                  Password
+                </label>
+                <Link href="/forgot-password" className="text-sm text-blue-600 hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
@@ -92,7 +86,6 @@ export default function LoginPage() {
                 />
               </div>
             </div>
-
             {/* Submit Button */}
             <button
               type="submit"
@@ -102,7 +95,6 @@ export default function LoginPage() {
               {isLoading ? "Logging in..." : "Login"}
             </button>
           </form>
-
           {/* Message Display */}
           {message && (
             <div
@@ -115,7 +107,6 @@ export default function LoginPage() {
               {message}
             </div>
           )}
-
           {/* Signup Link */}
           <p className="text-center mt-6 text-gray-600">
             Don't have an account?{" "}

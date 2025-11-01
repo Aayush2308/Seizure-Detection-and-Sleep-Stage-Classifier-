@@ -8,50 +8,14 @@ import json
 import os
 from pathlib import Path
 import numpy as np
+import pickle
 
 # Add the ml directory to the path
 ml_dir = Path(__file__).parent
 sys.path.insert(0, str(ml_dir))
 
-def load_file_data(file_path, file_format):
-    """Load data from various file formats"""
-    try:
-        if file_format == 'npz':
-            data = np.load(file_path)
-            # Try common key names
-            for key in ['X', 'data', 'signals', 'eeg']:
-                if key in data:
-                    return data[key]
-            # If no common key, return first array
-            return data[list(data.keys())[0]]
-        
-        elif file_format == 'edf':
-            import mne
-            raw = mne.io.read_raw_edf(file_path, preload=True, verbose=False)
-            return raw.get_data()
-        
-        elif file_format == 'csv':
-            import pandas as pd
-            df = pd.read_csv(file_path)
-            return df.values.T  # Transpose to get (channels, time_points)
-        
-        elif file_format == 'pkl':
-            import pickle
-            with open(file_path, 'rb') as f:
-                data = pickle.load(f)
-            if isinstance(data, dict):
-                for key in ['X', 'data', 'signals', 'eeg']:
-                    if key in data:
-                        return data[key]
-                return list(data.values())[0]
-            return data
-        
-        else:
-            return None
-            
-    except Exception as e:
-        print(f"Error loading file: {str(e)}", file=sys.stderr)
-        return None
+# Import EEGFeatureExtractor BEFORE any pickle operations
+from predict_user_file import EEGFeatureExtractor
 
 def main():
     if len(sys.argv) < 2:
@@ -62,7 +26,24 @@ def main():
         sys.exit(1)
     
     file_path = sys.argv[1]
-    file_format = sys.argv[3] if len(sys.argv) > 3 else None
+    file_format = None
+    report_path = None
+    analysis_type = "seizure"
+    
+    # Parse command line arguments
+    i = 2
+    while i < len(sys.argv):
+        if sys.argv[i] == "--format" and i + 1 < len(sys.argv):
+            file_format = sys.argv[i + 1]
+            i += 2
+        elif sys.argv[i] == "--report" and i + 1 < len(sys.argv):
+            report_path = sys.argv[i + 1]
+            i += 2
+        elif sys.argv[i] == "--type" and i + 1 < len(sys.argv):
+            analysis_type = sys.argv[i + 1]
+            i += 2
+        else:
+            i += 1
     
     # Check if file exists
     if not os.path.exists(file_path):
@@ -73,11 +54,6 @@ def main():
         sys.exit(1)
     
     try:
-        # Import the prediction module
-        from predict_user_file import EEGFeatureExtractor
-        import pickle
-        import numpy as np
-        
         # Load the model
         model_path = ml_dir / "best_model.pkl"
         feature_extractor_path = ml_dir / "feature_extractor.pkl"
@@ -103,40 +79,65 @@ def main():
         if not file_format:
             file_format = Path(file_path).suffix[1:]  # Remove the dot
         
-        # Load and process the data
-        data = load_file_data(file_path, file_format)
-        
-        if data is None:
+        # Load data using the feature extractor's load_data method
+        try:
+            X, y_true = feature_extractor.load_data(file_path, file_format)
+        except Exception as e:
             print(json.dumps({
-                "error": f"Failed to load file in {file_format} format",
+                "error": f"Failed to load file: {str(e)}",
                 "success": False
             }))
             sys.exit(1)
         
-        # Extract features
-        features = feature_extractor.extract_all_features(data)
-        features = features.reshape(1, -1)
+        # Extract features using the feature extractor's transform method
+        try:
+            features = feature_extractor.transform(X)
+        except Exception as e:
+            print(json.dumps({
+                "error": f"Failed to extract features: {str(e)}",
+                "success": False
+            }))
+            sys.exit(1)
         
-        # Make prediction
-        prediction = model.predict(features)[0]
-        prediction_proba = model.predict_proba(features)[0] if hasattr(model, 'predict_proba') else None
+        # Make predictions for all samples
+        predictions = model.predict(features)
+        prediction_probas = model.predict_proba(features) if hasattr(model, 'predict_proba') else None
+        
+        # Calculate overall statistics
+        seizure_count = int(np.sum(predictions == 1))
+        total_samples = int(len(predictions))
+        seizure_percentage = float((seizure_count / total_samples) * 100)
+        
+        # Get average confidence
+        if prediction_probas is not None:
+            avg_confidence = float(np.mean(np.max(prediction_probas, axis=1)) * 100)
+            avg_seizure_prob = float(np.mean(prediction_probas[:, 1]) * 100) if prediction_probas.shape[1] > 1 else 0
+            avg_normal_prob = float(np.mean(prediction_probas[:, 0]) * 100)
+        else:
+            avg_confidence = None
+            avg_seizure_prob = None
+            avg_normal_prob = None
         
         # Prepare result
         result = {
             "success": True,
-            "prediction": "Seizure Detected" if prediction == 1 else "Normal (No Seizure)",
-            "prediction_value": int(prediction),
-            "confidence": float(max(prediction_proba) * 100) if prediction_proba is not None else None,
+            "prediction": "Seizure Detected" if seizure_percentage > 50 else "Normal (No Seizure)",
+            "seizure_detected": seizure_count > 0,
+            "total_samples": total_samples,
+            "seizure_samples": seizure_count,
+            "normal_samples": total_samples - seizure_count,
+            "seizure_percentage": seizure_percentage,
+            "confidence": avg_confidence,
             "file_format": file_format,
             "features_extracted": int(features.shape[1]),
-            "message": "Analysis completed successfully"
+            "message": f"Analyzed {total_samples} samples. Found {seizure_count} seizure events ({seizure_percentage:.1f}%)"
         }
         
         # Add probability details if available
-        if prediction_proba is not None:
+        if avg_seizure_prob is not None:
             result["probabilities"] = {
-                "normal": float(prediction_proba[0] * 100),
-                "seizure": float(prediction_proba[1] * 100) if len(prediction_proba) > 1 else 0
+                "normal": avg_normal_prob,
+                "seizure": avg_seizure_prob
             }
         
         print(json.dumps(result))

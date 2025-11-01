@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/dbConnect";
 import User from "@/models/User";
+import Session from "@/models/Session";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -22,8 +23,23 @@ export async function POST(req: Request) {
     const token = jwt.sign(
       { id: user._id, email: user.email },
       process.env.JWT_SECRET!,
-      { expiresIn: "1d" }
+      { expiresIn: "7d" }
     );
+
+    // Create session in database
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
+
+    await Session.create({
+      userId: user._id,
+      token,
+      expiresAt,
+      isValid: true
+    });
+
+    // Update last login
+    user.lastLogin = new Date();
+    await user.save();
 
     return NextResponse.json({ 
       message: "Login successful", 
@@ -35,6 +51,7 @@ export async function POST(req: Request) {
       }
     }, { status: 200 });
   } catch (error) {
+    console.error("Login error:", error);
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }

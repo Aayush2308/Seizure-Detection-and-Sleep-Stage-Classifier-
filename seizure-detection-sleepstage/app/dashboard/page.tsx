@@ -1,34 +1,28 @@
 "use client";
-
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Brain, Activity, Moon, LogOut, User } from "lucide-react";
-
+import { Brain, Activity, Moon, LogOut, Settings, UserCircle } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 export default function DashboardPage() {
-  const [user, setUser] = useState<any>(null);
+  const { user, loading } = useAuth();
   const router = useRouter();
-
-  useEffect(() => {
-    // Check if user is logged in
-    const storedUser = localStorage.getItem("user");
+  const handleLogout = async () => {
     const token = localStorage.getItem("token");
-    
-    if (!storedUser || !token) {
-      router.push("/login");
-      return;
+    if (token) {
+      try {
+        await fetch("/api/logout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        });
+      } catch (error) {
+        console.error("Logout error:", error);
+      }
     }
-    
-    setUser(JSON.parse(storedUser));
-  }, [router]);
-
-  const handleLogout = () => {
-    localStorage.removeItem("user");
     localStorage.removeItem("token");
     router.push("/");
   };
-
-  if (!user) {
+  if (loading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -38,7 +32,6 @@ export default function DashboardPage() {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-purple-50">
       {/* Navigation Bar */}
@@ -51,9 +44,15 @@ export default function DashboardPage() {
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <User className="w-5 h-5 text-gray-600" />
+                <UserCircle className="w-5 h-5 text-gray-600" />
                 <span className="text-gray-700 font-medium">{user.name}</span>
               </div>
+              <Link href="/settings">
+                <button className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition">
+                  <Settings className="w-5 h-5" />
+                  <span>Settings</span>
+                </button>
+              </Link>
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition"
@@ -65,7 +64,6 @@ export default function DashboardPage() {
           </div>
         </div>
       </nav>
-
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Welcome Section */}
@@ -77,7 +75,6 @@ export default function DashboardPage() {
             Choose an analysis tool to get started with your EEG data
           </p>
         </div>
-
         {/* Analysis Options */}
         <div className="grid md:grid-cols-2 gap-8">
           {/* Seizure Detection Card */}
@@ -113,7 +110,6 @@ export default function DashboardPage() {
               </div>
             </div>
           </Link>
-
           {/* Sleep Stage Classification Card */}
           <Link href="/sleep-stage">
             <div className="bg-white rounded-2xl shadow-xl p-8 border-2 border-gray-100 hover:border-purple-300 hover:shadow-2xl transition transform hover:scale-105 cursor-pointer group">
@@ -148,7 +144,6 @@ export default function DashboardPage() {
             </div>
           </Link>
         </div>
-
         {/* Info Section */}
         <div className="mt-12 bg-blue-50 rounded-2xl p-8 border border-blue-100">
           <h3 className="text-xl font-bold text-gray-900 mb-4">Supported File Formats</h3>
